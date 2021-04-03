@@ -43,7 +43,20 @@ app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
 });
 
 
-app.get('/livreur/:id/commandes', (req, res) => {
+app.get('/livreur/:id/:date/commandes', (req, res) => {
+    var query = `select commande.*
+    from 
+    commande 
+    where idlivreur = ? and dateLivraison = ?`
+
+    connection.query(query, [req.params.id, req.params.date], function (error, results) {
+        if (error) { throw (error) }
+        console.log("Success")
+        res.send(JSON.stringify(results));
+    })
+});
+
+/*app.get('/livreur/:id/commandes', (req, res) => {
     var query = `select commande.*
     from 
     commande 
@@ -51,9 +64,10 @@ app.get('/livreur/:id/commandes', (req, res) => {
 
     connection.query(query, [req.params.id], function (error, results) {
         if (error) { throw (error) }
+        console.log("Success commandes")
         res.send(JSON.stringify(results));
     })
-});
+});*/
 
 //Handle Authentication User and get user access token
 app.post('/login', function (req, res) {

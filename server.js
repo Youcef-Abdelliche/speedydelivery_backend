@@ -22,7 +22,7 @@ app.get('/hello', (req, res) => {
 });
 
 
-app.get('/livreur/commandes/:idcommande', authenticateToken, (req, res) => {
+app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
 
 
     var query = `select produit.*, commandeproduit.quantite 
@@ -35,7 +35,7 @@ app.get('/livreur/commandes/:idcommande', authenticateToken, (req, res) => {
 
     //var query = "select * from produits where produits.nom = ?"
 
-    connection.query(query, [req.user.uid, req.params.idcommande], function (error, results) {
+    connection.query(query, [req.params.id, req.params.idcommande], function (error, results) {
         if (error) { throw (error) }
         console.log("orderdetail: success")
         res.send(JSON.stringify(results));
@@ -43,13 +43,13 @@ app.get('/livreur/commandes/:idcommande', authenticateToken, (req, res) => {
 });
 
 
-app.get('/livreur/commandes', authenticateToken, (req, res) => {
+app.get('/livreur/:id/commandes', (req, res) => {
     var query = `select commande.*
     from 
     commande 
     where idlivreur = ?`
 
-    connection.query(query, [req.user.uid], function (error, results) {
+    connection.query(query, [req.params.id], function (error, results) {
         if (error) { throw (error) }
         res.send(JSON.stringify(results));
     })
@@ -61,16 +61,15 @@ app.post('/login', function (req, res) {
     const useremail = req.body.email
     const userpassword = req.body.password
     const userid = null
-    const user = { email: useremail, password: userpassword, uid: userid }
+    const user = { email: useremail, password: userpassword }
     var query = "select * from livreur where livreur.emailLivreur = ? and livreur.passwordLivreur = ?";
     connection.query(query, [user.email, user.password], function (error, results) {
         if (error) { throw (error) }
         if (results.length > 0) {
             user.uid = results[0]['idLivreur']
             console.log("Success")
-            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
             //res.send(JSON.stringify("success"))
-            res.json({ accessToken: accessToken })
+            res.json({ userid: user.uid })
         }
         else {
             console.log("Not Found")
@@ -84,17 +83,6 @@ app.post('/login', function (req, res) {
 
 
 
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-    if (token == null) return res.sendStatus(401)
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403)
-        req.user = user
-        next()
-    })
-}
 
 //Start server
 var server = app.listen(8082, function () {

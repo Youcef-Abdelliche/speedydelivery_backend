@@ -21,10 +21,24 @@ app.get('/hello', (req, res) => {
     res.send('HEllo, localhost server is working')
 });
 
+// Endpoint: Get: les commandes en retard (+48h)
+app.get('/livreur/:id/commandes/commanderetard', (req, res)=>{
+    var query = `select commande.* from 
+    commande where idlivreur = ? and etatCommande = "lateorder"`
 
+    connection.query(query, [req.params.id], function (error, results) {
+        if (error) { throw (error) }
+        console.log("orderdetail: success")
+        res.send(JSON.stringify(results));
+    })
+});
+ 
+/**
+ * Endpoint: Get: Les détails d'une commande en passant l'id de 
+ * livreur et l'id de la commande dans les parametres du lien
+ * on obtient dans results la liste des produit de la commande
+ */
 app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
-
-
     var query = `select produit.*, commandeproduit.quantite 
     from 
     commande join commandeproduit join produit
@@ -42,7 +56,11 @@ app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
     })
 });
 
-
+/**
+ * Endpoint: Get: La liste des commandes en passant l'id de livreur
+ * et la date 
+ * on obtient la liste des commandes de la date séléctionnée
+ */
 app.get('/livreur/:id/:date/commandes', (req, res) => {
     var query = `select commande.*
     from 
@@ -69,7 +87,7 @@ app.get('/livreur/:id/:date/commandes', (req, res) => {
     })
 });*/
 
-//Handle Authentication User and get user access token
+//Handle Authentication User and get user id
 app.post('/login', function (req, res) {
 
     const useremail = req.body.email

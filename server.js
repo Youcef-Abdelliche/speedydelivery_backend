@@ -116,7 +116,7 @@ app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
  * il y a 2 paramètres passé dans lien: id livreur et la date
  */
 app.get('/livreur/:id/commandes/:date/listes', (req,res)=>{
-    var query = `select commande.idCommande, commande.etatCommande, client.nomClient, client.prenomClient, adresseClient, numTelClient, emailClient, commande.prixTotal
+    var query = `select commande.idCommande, commande.etatCommande, commande.codebar, client.nomClient, client.prenomClient, adresseClient, numTelClient, emailClient, commande.prixTotal
     from 
     commande join client 
     on idlivreur = ? and dateLivraison = ? and commande.idclient = client.idClient`

@@ -39,7 +39,7 @@ app.get('/livreur/:id/commandes/commanderetard', (req, res)=>{
  * on obtient dans results la liste des produit de la commande
  */
 app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
-    var query = `select produit.*, commandeproduit.quantite 
+    var query = `select produit.idProduit, produit.nomProduit, commandeproduit.quantite, produit.prixProduit, produit.imageProduit 
     from 
     commande join commandeproduit join produit
     on commande.idlivreur = ? 
@@ -61,7 +61,7 @@ app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
  * et la date 
  * on obtient la liste des commandes de la date séléctionnée
  */
-app.get('/livreur/:id/:date/commandes', (req, res) => {
+/*app.get('/livreur/:id/:date/commandes', (req, res) => {
     var query = `select commande.*
     from 
     commande 
@@ -72,7 +72,29 @@ app.get('/livreur/:id/:date/commandes', (req, res) => {
         console.log("Success")
         res.send(JSON.stringify(results));
     })
-});
+});*/
+
+/**
+ * Endpoint: Get: La liste des commandes en passant l'id de livreur
+ * on obtient la liste des commandes de la date d'aujourd'hui
+ */
+/*app.get('/livreur/:id/commandestoday', (req, res) => {
+    var query = `select commande.*
+    from 
+    commande 
+    where idlivreur = ? and dateLivraison = ?`
+    //var date = Date()
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = date.getFullYear();
+    var today= yyyy+"-"+mm+"-"+dd
+    connection.query(query, [req.params.id, today], function (error, results) {
+        if (error) { throw (error) }
+        console.log(yyyy+"-"+mm+"-"+dd)
+        res.send(JSON.stringify(results));
+    })
+});*/
 
 /*app.get('/livreur/:id/commandes', (req, res) => {
     var query = `select commande.*
@@ -87,6 +109,54 @@ app.get('/livreur/:id/:date/commandes', (req, res) => {
     })
 });*/
 
+/**
+ * Get la liste de commandes avec leurs infos sur le client
+ * Cette endpoint est utilisé pour obtenir la liste des commandes
+ * l'interface des commandes (orders)
+ * il y a 2 paramètres passé dans lien: id livreur et la date
+ */
+app.get('/livreur/:id/commandes/:date/listes', (req,res)=>{
+    var query = `select commande.idCommande, commande.etatCommande, client.nomClient, client.prenomClient, adresseClient, numTelClient, emailClient, commande.prixTotal
+    from 
+    commande join client 
+    on idlivreur = ? and dateLivraison = ? and commande.idclient = client.idClient`
+
+    connection.query(query, [req.params.id, req.params.date], function (error, results) {
+        if (error) { throw (error) }
+        console.log("Liste commande: success")
+        res.send(JSON.stringify(results));
+    })
+});
+
+/*app.get('/livreur/:id/listescommandes', (req,res)=>{
+    var query = `select commande.idCommande, client.nomClient, client.prenomClient, adresseClient, numTelClient, emailClient, commande.prixTotal
+    from 
+    commande join client 
+    on idlivreur = ? and commande.idclient = client.idClient`
+
+    connection.query(query, [req.params.id], function (error, results) {
+        if (error) { throw (error) }
+        console.log("Success")
+        res.send(JSON.stringify(results));
+    })
+});*/
+
+
+/**
+ * Endpoint pour la validation d'une commande
+ * En passant id livreur et id commande
+ * Apres l'etat de la commande sera changée vers "Delivred"
+ */
+app.patch('/validationcommmande/:idcommande', (req,res)=>{
+    var query = `UPDATE commande SET etatCommande = 'delivred' WHERE commande.idCommande = ?`
+
+    connection.query(query, [req.params.idcommande], function (error, results){
+        if (error) { throw (error) }
+        console.log("validation commande: Success")
+        res.send(JSON.stringify(results));
+    })
+});
+
 //Handle Authentication User and get user id
 app.post('/login', function (req, res) {
 
@@ -99,7 +169,7 @@ app.post('/login', function (req, res) {
         if (error) { throw (error) }
         if (results.length > 0) {
             user.uid = results[0]['idLivreur']
-            console.log("Success")
+            console.log("success login")
             //res.send(JSON.stringify("success"))
             res.json({ userid: user.uid })
         }

@@ -4,6 +4,7 @@ const express = require("express")
 const mysql = require('mysql')
 const bodyparser = require('body-parser')
 const jwt = require('jsonwebtoken')
+const { query } = require('express')
 const app = express()
 
 app.use(express.json())
@@ -120,6 +121,23 @@ app.get('/livreur/:id/nombrecommmande', (req,res)=>{
         if (error) { throw (error) }
         console.log("encaissements: Success")
         res.send(JSON.stringify(results[0]["encaissements"]));
+    })
+});
+
+/***
+ * 
+ */
+
+app.get('/livreur/:id/profile', (req,res)=>{
+
+    var query = `select livreur.nomLivreur, livreur.prenomLivreur, count(idCommande) as commandedelivre from 
+    livreur join commande 
+    on livreur.idLivreur = ? and commande.idlivreur = livreur.idLivreur and etatCommande = "delivred"`
+
+    connection.query(query, [req.params.id], function (error, results){
+        if (error) { throw (error) }
+        console.log("profile: Success")
+        res.send(JSON.stringify(results[0]));
     })
 });
 

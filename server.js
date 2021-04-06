@@ -29,13 +29,13 @@ app.get('/hello', (req, res) => {
  * Endpoint: Get: les commandes en retard (+48h)
  */
 app.get('/livreur/:id/commandes/commanderetard', (req, res)=>{
-    var query = `select commande.* from 
+    var query = `select count(idCommande) as commanderetard from 
     commande where idlivreur = ? and etatCommande = "lateorder"`
 
     connection.query(query, [req.params.id], function (error, results) {
         if (error) { throw (error) }
         console.log("commanades retards: success")
-        res.send(JSON.stringify(results));
+        res.send(JSON.stringify(results[0]["commanderetard"]));
     })
 });
  

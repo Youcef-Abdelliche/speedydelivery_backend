@@ -21,14 +21,20 @@ app.get('/hello', (req, res) => {
     res.send('HEllo, localhost server is working')
 });
 
-// Endpoint: Get: les commandes en retard (+48h)
+
+
+
+/**
+ * 
+ * Endpoint: Get: les commandes en retard (+48h)
+ */
 app.get('/livreur/:id/commandes/commanderetard', (req, res)=>{
     var query = `select commande.* from 
     commande where idlivreur = ? and etatCommande = "lateorder"`
 
     connection.query(query, [req.params.id], function (error, results) {
         if (error) { throw (error) }
-        console.log("orderdetail: success")
+        console.log("commanades retards: success")
         res.send(JSON.stringify(results));
     })
 });
@@ -55,60 +61,6 @@ app.get('/livreur/:id/commandes/:idcommande', (req, res) => {
         res.send(JSON.stringify(results));
     })
 });
-
-/**
- * Endpoint: Get: La liste des commandes en passant l'id de livreur
- * et la date 
- * on obtient la liste des commandes de la date séléctionnée
- */
-/*app.get('/livreur/:id/:date/commandes', (req, res) => {
-    var query = `select commande.*
-    from 
-    commande 
-    where idlivreur = ? and dateLivraison = ?`
-
-    connection.query(query, [req.params.id, req.params.date], function (error, results) {
-        if (error) { throw (error) }
-        console.log("Success")
-        res.send(JSON.stringify(results));
-    })
-});*/
-
-/**
- * Endpoint: Get: La liste des commandes en passant l'id de livreur
- * on obtient la liste des commandes de la date d'aujourd'hui
- */
-/*app.get('/livreur/:id/commandestoday', (req, res) => {
-    var query = `select commande.*
-    from 
-    commande 
-    where idlivreur = ? and dateLivraison = ?`
-    //var date = Date()
-    var date = new Date();
-    var dd = String(date.getDate()).padStart(2, '0');
-    var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = date.getFullYear();
-    var today= yyyy+"-"+mm+"-"+dd
-    connection.query(query, [req.params.id, today], function (error, results) {
-        if (error) { throw (error) }
-        console.log(yyyy+"-"+mm+"-"+dd)
-        res.send(JSON.stringify(results));
-    })
-});*/
-
-/*app.get('/livreur/:id/commandes', (req, res) => {
-    var query = `select commande.*
-    from 
-    commande 
-    where idlivreur = ?`
-
-    connection.query(query, [req.params.id], function (error, results) {
-        if (error) { throw (error) }
-        console.log("Success commandes")
-        res.send(JSON.stringify(results));
-    })
-});*/
-
 /**
  * Get la liste de commandes avec leurs infos sur le client
  * Cette endpoint est utilisé pour obtenir la liste des commandes
@@ -128,19 +80,48 @@ app.get('/livreur/:id/commandes/:date/listes', (req,res)=>{
     })
 });
 
-/*app.get('/livreur/:id/listescommandes', (req,res)=>{
-    var query = `select commande.idCommande, client.nomClient, client.prenomClient, adresseClient, numTelClient, emailClient, commande.prixTotal
-    from 
-    commande join client 
-    on idlivreur = ? and commande.idclient = client.idClient`
+/**
+ * Endpoint: Get le nombre de commandes du jour en cours
+ */
 
-    connection.query(query, [req.params.id], function (error, results) {
+app.get('/livreur/:id/nombrecommmande', (req,res)=>{
+    var query = `select count(idCommande) as nbrcommande from commande where idlivreur = ? and dateLivraison = ?`
+
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = date.getFullYear();
+    var today= yyyy+"-"+mm+"-"+dd
+
+    connection.query(query, [req.params.id, today], function (error, results){
         if (error) { throw (error) }
-        console.log("Success")
-        res.send(JSON.stringify(results));
+        console.log("nombre de commande: Success")
+        res.send(JSON.stringify(results[0]["nbrcommande"]));
     })
-});*/
+});
 
+/**
+ * 
+ * Endpoint: Get le total des encaissements du jour en cours
+ */
+ app.get('/livreur/:id/todayencaissements', (req,res)=>{
+    var query = `SELECT SUM(prixTotal) as encaissements from commande 
+    where idlivreur = ? and dateLivraison = ? and etatCommande = ?`
+
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = date.getFullYear();
+    var today= yyyy+"-"+mm+"-"+dd
+
+    etatCommande = "delivred"
+
+    connection.query(query, [req.params.id, today, etatCommande], function (error, results){
+        if (error) { throw (error) }
+        console.log("encaissements: Success")
+        res.send(JSON.stringify(results[0]["encaissements"]));
+    })
+});
 
 /**
  * Endpoint pour la validation d'une commande
